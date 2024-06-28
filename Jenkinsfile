@@ -1,39 +1,36 @@
 pipeline {
-    agent any
-    tools{
-        maven 'maven_3_5_0'
+  agent any 
+  tools{
+      maven 'mvn'}
+ stages{
+  stage('checkout'){
+    steps{
+	 checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/ggutu/devops-automation-you.git']])
+	}
     }
-    stages{
-        stage('Build Maven'){
-            steps{
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Java-Techie-jt/devops-automation']]])
-                sh 'mvn clean install'
-            }
-        }
-        stage('Build docker image'){
-            steps{
-                script{
-                    sh 'docker build -t javatechie/devops-integration .'
-                }
-            }
-        }
-        stage('Push image to Hub'){
-            steps{
-                script{
-                   withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
-                   sh 'docker login -u javatechie -p ${dockerhubpwd}'
-
-}
-                   sh 'docker push javatechie/devops-integration'
-                }
-            }
-        }
-        stage('Deploy to k8s'){
-            steps{
-                script{
-                    kubernetesDeploy (configs: 'deploymentservice.yaml',kubeconfigId: 'k8sconfigpwd')
-                }
-            }
-        }
+	stage('maven build'){
+    steps{
+	sh "mvn clean install" 
+	}
     }
+	stage('docker build image'){
+    steps{
+	 script{
+	  sh  'docker build -t gizachewgutu/devops-integration .'
+	   }
+	}
+    }
+    stage('docker push'){
+    steps{
+	 script{
+	 withCredentials([string(credentialsId: 'dockerHub-pwd', variable: 'dockerHubPWD')]) {
+	     sh 'docker login -u gizachewgutu -p ${dockerHubPWD}'
+	     sh 'docker push gizachewgutu/devops-integration'
 }
+	   }
+	}
+    }
+ }
+ }
+  
+  
